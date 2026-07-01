@@ -1,55 +1,39 @@
 import java.util.*;
-// 고정된 배열 -> 슬라이딩 윈도우
-// 이중배열? 타입이 다르네,, -> map 근데 순서 상관없으니까 hash!!
-
-
 class Solution {
     public int solution(String[] want, int[] number, String[] discount) {
-        
-        int day = 0; 
-        
-        
-        Map<String, Integer> bucket = new HashMap<>();
-        
-        for(int i = 0; i < want.length; i++){
-            bucket.put(want[i], number[i]);
-        }
-        
-        Map<String, Integer> window = new HashMap<>();
-        for(int i = 0; i < 10; i++){
-            String item = discount[i];
-            
-            // 해당한다면, 기존에 있던것과 더해주고
-            if(window.containsKey(item)){
-                window.put(item, window.get(item) + 1);
-            }
-            // 없다면, 1
-            else {
-                window.put(item, 1);
+        int answer = 0;
+        int len = want.length;
+
+        // 원하는 품목별로 10일간 할인된 개수를 셀 배열
+        int[] tmp = new int[len];
+
+        // 첫 10일치 윈도우 세팅!! -> discount 0~9일 확인
+        for(int i = 0; i < 10; i++) {
+            for(int j = 0; j < len; j++) {
+                if(discount[i].equals(want[j])) {
+                    tmp[j]++;   // 원하는 품목이면 개수 +1
+                    break;      // 찾았으면 더 볼 필요 없음
+                }
             }
         }
-        
-        if(bucket.equals(window)) day++;
-        
-        for(int r = 10; r < discount.length; r++){
-            String addItem = discount[r];
-            
-            if(window.containsKey(addItem)){
-                window.put(addItem, window.get(addItem)+1);
+
+        // 원하는 수량과 딱 맞으면 카운트
+        if(Arrays.equals(tmp, number)) answer++;
+
+        // 하루씩 밀면서 확인 (슬라이딩 윈도우)
+        for(int i = 10; i < discount.length; i++) {
+            String out = discount[i - 10];  // 윈도우에서 빠지는 날
+            String in = discount[i];        // 윈도우에 새로 들어오는 날
+
+            for(int j = 0; j < len; j++) {
+                if(out.equals(want[j])) tmp[j]--;   // 빠지는 품목 -1
+                if(in.equals(want[j])) tmp[j]++;    // 들어오는 품목 +1
             }
-            else{
-                window.put(addItem, 1);
-            }
-            
-            String removeItem = discount[r - 10];
-            window.put(removeItem, window.get(removeItem)-1);
-            
-            if(window.get(removeItem) == 0) window.remove(removeItem);
-            
-            if(bucket.equals(window)) day++;
-            
+
+            // 수량 맞으면 카운트
+            if(Arrays.equals(tmp, number)) answer++;
         }
-        
-        return day;
+
+        return answer;
     }
 }
